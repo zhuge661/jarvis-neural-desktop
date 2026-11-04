@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>第三个 · 贾维斯全息控制台（中文版）</title>
+  <link rel="stylesheet" href="css/hud.css" />
+  <link rel="stylesheet" href="css/knowledge.css" />
+</head>
+<body>
+  <!-- Slowly shifting background gradient -->
+  <div id="ambiance"></div>
+
+  <!-- 3D holographic core renders here -->
+  <canvas id="scene"></canvas>
+
+  <!-- Tracking overlay kept clear; hand skeleton is hidden -->
+  <canvas id="overlay"></canvas>
+
+  <!-- Fly-through file-map (its own renderer; hidden until toggled) -->
+  <canvas id="filemap"></canvas>
+  <div id="map-tip"></div>
+
+  <!-- Data chart view (its own renderer; hidden until toggled) -->
+  <canvas id="chartview"></canvas>
+  <div id="chart-tip"></div>
+  <div id="chart-legend"></div>
+
+  <!-- Hidden webcam feed used by the hand tracker -->
+  <video id="webcam" autoplay playsinline muted></video>
+
+  <!-- ===================== HUD overlay ===================== -->
+  <div id="hud">
+    <div class="bracket tl"></div><div class="bracket tr"></div>
+    <div class="bracket bl"></div><div class="bracket br"></div>
+
+    <header id="hud-top">
+      <div class="hud-title">J.A.R.V.I.S<span class="sub">本机全息控制台</span></div>
+      <div class="hud-clock" id="clock">--:--:--</div>
+    </header>
+
+    <aside id="hud-left">
+      <div class="panel draggable-panel" id="system-panel">
+        <div class="panel-label drag-handle" title="按住拖动面板；双击标题恢复默认位置">系统状态 <span>⠿</span></div>
+        <div class="readout"><span>渲染</span><b id="fps">-- 帧/秒</b></div>
+        <div class="readout"><span>核心</span><b id="core-state">待机</b></div>
+        <div class="readout"><span>手部追踪</span><b id="hands-state">未启用</b></div>
+        <div class="readout"><span>控制方式</span><b id="ctrl-mode">鼠标</b></div>
+        <div class="readout"><span>模型后端</span><b id="brain-state">&mdash;</b></div>
+        <div class="readout"><span>音乐律动</span><b id="music-state">关闭</b></div>
+      </div>
+      <div class="panel draggable-panel" id="gesture-panel">
+        <div class="panel-label drag-handle" title="按住拖动面板；双击标题恢复默认位置">手势操作 <span>⠿</span></div>
+        <div class="hint">移动手掌 → 旋转核心</div>
+        <div class="hint">双手张掌向两侧拉开 → 放大</div>
+        <div class="hint">双手张掌向中间合拢 → 缩小</div>
+        <div class="hint">收手 / 仅单手 → 保持大小</div>
+        <div class="hint">OK 保持半秒 → 固定大小与角度</div>
+        <div class="hint">另一只手食指 → 指向笔记</div>
+        <div class="hint">点到有文档节点 → 周边一起亮起</div>
+        <div class="hint">亮起后向右滑 → 拉出知识卡片</div>
+        <div class="hint">卡片展开后：上下滑 → 翻页</div>
+        <div class="hint">向左滑 → 缩小收回，再选节点</div>
+        <div class="hint">原手重新张掌 → 解锁</div>
+        <div class="hint">单手伸食指 1 → 脉冲（未锁定）</div>
+      </div>
+    </aside>
+
+    <aside id="hud-right" aria-label="资料与日志">
+      <section id="import-panel" class="panel draggable-panel" aria-label="资料导入">
+        <div class="panel-label drag-handle" title="按住标题移动，拖动右下角调整高度">资料导入 <span>⠿</span></div>
+        <div class="import-body">
+        <div class="import-actions">
+          <button id="btn-import-docs" class="hud-btn" type="button">＋ 导入文档</button>
+          <button id="btn-import-photos" class="hud-btn" type="button">＋ 导入照片</button>
+        </div>
+        <div id="import-drop" tabindex="0" role="button" aria-label="选择或拖入文档、照片">也可把文件拖到这里</div>
+        <div id="import-status" role="status">资料保存在本机，点击网络节点查看</div>
+        <div id="import-list" aria-label="已导入资料"></div>
+        </div>
+      </section>
+    <section id="hud-log" class="draggable-panel">
+      <div class="panel-label drag-handle" title="按住标题移动，拖动右下角调整高度">运行日志 <span>⠿</span></div>
+      <div id="log-feed"></div>
+    </section>
+    <section id="reply-panel" class="panel draggable-panel" aria-label="贾维斯回复">
+      <div class="panel-label drag-handle" title="按住标题移动，拖动右下角调整高度">贾维斯回复 <span>⠿</span></div>
+      <div id="reply-question"></div>
+      <div id="reply-scroll"><span id="reply-text">等待你的提问…</span><span class="reply-caret" aria-hidden="true">▌</span></div>
+    </section>
+    </aside>
+
+    <footer id="hud-bottom">
+      <div id="jarvis-line"><span class="prompt">JARVIS &gt;</span> <span id="jarvis-text"></span><span class="caret">_</span></div>
+
+      <div id="deck">
+        <div id="deck-results"></div>
+        <div id="deck-row">
+          <span class="deck-icon">&rsaquo;</span>
+          <input id="deck-input" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="输入消息后回车，与当前模型对话；输入 /help 查看命令…" />
+          <button id="btn-load" class="hud-btn">&#9969; 加载文件夹</button>
+        </div>
+      </div>
+
+      <div id="voice-controls" aria-label="语音对话">
+        <button id="btn-voice" class="hud-btn">🎙 开启语音对话</button>
+        <button id="btn-voice-preview" class="hud-btn">▶ 试听贾维斯男声</button>
+        <button id="btn-voice-stop" class="hud-btn">■ 停止朗读</button>
+        <button id="btn-realtime" class="hud-btn">⚙ 实时语音设置</button>
+        <label><input id="voice-replies" type="checkbox" checked /> 回复朗读</label>
+        <span id="voice-status" role="status">云健男声 · 待机</span>
+        <span class="voice-note">火山全双工 / 本机语音 · 内置唤醒离线可用</span>
+        <div class="audio-control bgm-control" role="group" aria-label="背景音乐">
+          <button id="btn-bgm" class="hud-btn">♪ 背景音乐</button>
+          <label class="audio-volume" hidden>音量 <input id="volume-bgm" type="range" min="0" max="100" step="1" aria-label="背景音乐音量" /><output></output></label>
+        </div>
+      </div>
+      <div id="controls">
+        <button id="btn-backend" class="hud-btn">⚙ 模型 API 设置</button>
+        <button id="btn-hands" class="hud-btn">&#9673; 启用手势识别</button>
+        <button id="btn-theme" class="hud-btn">&#9672; 切换配色</button>
+        <button id="btn-pulse" class="hud-btn">&#10022; 释放脉冲</button>
+        <div class="audio-control" role="group" aria-label="交互音效">
+          <button id="btn-effects" class="hud-btn active">♫ 关闭交互音效</button>
+          <label class="audio-volume" hidden>音量 <input id="volume-effects" type="range" min="0" max="100" step="1" aria-label="交互音效音量" /><output></output></label>
+        </div>
+        <div class="audio-control" role="group" aria-label="水声">
+          <button id="btn-water" class="hud-btn">≋ 开启水声</button>
+          <label class="audio-volume" hidden>音量 <input id="volume-water" type="range" min="0" max="100" step="1" aria-label="水声音量" /><output></output></label>
+        </div>
+        <button id="btn-reset" class="hud-btn">&#8635; 重置视角</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Holographic content panels appear here -->
+  <div id="panels"></div>
+
+  <section id="knowledge-status" aria-label="Obsidian 知识库">
+    <div id="knowledge-count">正在连接 Obsidian…</div>
+    <div id="knowledge-legend">周边亮起表示有可读文档</div>
+    <div id="knowledge-mode">张掌旋转 · 双手缩放 · OK 保持半秒锁定</div>
+    <button id="btn-knowledge-lock" class="hud-btn">◇ 锁定球体</button>
+    <button id="btn-knowledge-refresh" class="hud-btn">↻ 刷新知识库</button>
+  </section>
+  <div id="knowledge-cursor" hidden></div>
+  <div id="knowledge-tip" hidden></div>
+  <aside id="knowledge-reader" hidden aria-label="知识库笔记">
+    <button id="knowledge-close" aria-label="关闭笔记">×</button>
+    <div class="knowledge-label">OBSIDIAN · 本机只读</div>
+    <h2 id="knowledge-note-title"></h2>
+    <div id="knowledge-note-path"></div>
+    <pre id="knowledge-note-content"></pre>
+    <div id="knowledge-attachment" hidden></div>
+    <div class="knowledge-navigation">
+      <button id="knowledge-prev" aria-label="上一页">↑ 上一页</button>
+      <span id="knowledge-page" aria-live="polite">1 / 1</span>
+      <button id="knowledge-next" aria-label="下一页">下一页 ↓</button>
+    </div>
+    <div class="knowledge-reading-hint">上下滑翻页 · 向左滑缩小收回</div>
+  </aside>
+
+
+  <!-- Hidden local-folder picker (files never leave your PC) -->
+  <input id="folder-input" type="file" webkitdirectory directory multiple hidden />
+  <input id="import-docs-input" type="file" multiple accept=".txt,.md,.csv,.json,.docx,.pdf" hidden />
+  <input id="import-photos-input" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" hidden />
+  <input id="import-any-input" type="file" multiple accept=".txt,.md,.csv,.json,.docx,.pdf,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" hidden />
+
+  <!-- Cache-busting loader: every reload fetches fresh code (no stale
+       browser cache) while keeping scripts in order. Great while iterating. -->
+  <script>
+    (function () {
+      var t = Date.now();
+      var files = [
+        "vendor/three.min.js", "vendor/xlsx.full.min.js", "vendor/Tone.js",
+        "js/ambiance.js", "js/hud.js", "js/audio-volumes.js", "js/neural-imports.js", "js/reply-card.js", "js/knowledge.js", "js/neural-core.js", "js/soundfx.js", "js/hologram.js", "js/handtracking.js", "js/draggable-panels.js",
+        "js/viz.js", "js/workspace.js", "js/backend.js", "js/builtin-replies.js", "js/brain.js", "js/voice-audio.js", "js/realtime-voice.js", "js/voice.js", "js/background-music.js", "js/audioviz.js",
+        "js/filemap.js", "js/chart.js", "js/themes.js", "js/reminders.js", "js/websearch.js", "js/main.js"
+      ];
+      (function next(i) {
+        if (i >= files.length) return;
+        var s = document.createElement("script");
+        s.src = files[i] + "?t=" + t;
+        s.onload = function () { next(i + 1); };
+        s.onerror = function () { console.error("failed to load", files[i]); next(i + 1); };
+        document.body.appendChild(s);
+      })(0);
+    })();
+  </script>
+</body>
+</html>

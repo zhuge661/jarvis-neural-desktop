@@ -1,0 +1,4 @@
+-r requirements.txt
+sounddevice==0.5.6
+vosk==0.3.44; sys_platform == 'darwin'
+vosk==0.3.45; sys_platform != 'darwin'

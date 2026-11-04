@@ -1,0 +1,15 @@
+* text=auto eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.sh text eol=lf
+*.command text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.png binary
+*.mp3 binary
+*.wav binary
+*.wasm binary
+*.task binary
+*.whl binary

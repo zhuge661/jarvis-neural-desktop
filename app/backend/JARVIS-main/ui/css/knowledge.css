@@ -1,0 +1,77 @@
+[hidden] { display: none !important; }
+#knowledge-status { position: fixed; top: 88px; left: 50%; transform: translateX(-50%); z-index: 12;
+  max-width: min(620px, 55vw); text-align: center; padding: 10px 18px; background: rgba(3, 11, 19, .78);
+  border: 1px solid var(--cyan-faint); border-radius: 6px; }
+#knowledge-count { color: #dbc5ff; font-size: 13px; letter-spacing: 1px; }
+#knowledge-legend { color: #ffe5a1; font-size: 10px; line-height: 1.6; margin-top: 4px; }
+#knowledge-mode { color: var(--text); opacity: .75; font-size: 11px; line-height: 1.8; margin: 4px 0 7px; }
+#knowledge-status .hud-btn { padding: 5px 10px; font-size: 11px; }
+#knowledge-cursor { position: fixed; z-index: 22; pointer-events: none; width: 13px; height: 13px;
+  transform: translate(-50%, -50%); border: 1px solid #fff4ce; border-radius: 50%;
+  background: #f2cb7866; box-shadow: 0 0 14px #ffdf9b; }
+#knowledge-tip { position: fixed; z-index: 23; pointer-events: none; max-width: 300px;
+  background: #06101aee; color: #fff1d2; border: 1px solid #d2ad72; padding: 8px 12px;
+  font-size: 12px; box-shadow: 0 0 18px #b497ff33; overflow-wrap: anywhere; }
+#knowledge-reader { position: fixed; z-index: 21; top: 115px; right: 28px; bottom: 240px;
+  width: min(390px, 34vw); border: 1px solid #ba9cf577; border-radius: 8px;
+  padding: 22px; background: #040c17f5; box-shadow: 0 10px 60px #0009; display: flex; flex-direction: column;
+  transform-origin: center; will-change: transform, opacity; }
+#knowledge-close { position: absolute; top: 8px; right: 12px; background: none; color: #e5d5ff;
+  border: 0; cursor: pointer; font: 24px sans-serif; }
+.knowledge-label { color: #bb9fec; font-size: 10px; letter-spacing: 2px; padding-right: 22px; }
+#knowledge-note-title { font-size: 17px; margin-top: 14px; color: #f2eaff; line-height: 1.5; overflow-wrap: anywhere; }
+#knowledge-note-path { font-size: 10px; color: #9c9aac; margin: 8px 0 14px; overflow-wrap: anywhere; }
+#knowledge-note-content { color: #dae3f2; font: 13px/1.9 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere;
+  overflow-y: auto; min-height: 0; flex: 1; user-select: text; padding-right: 10px; }
+.knowledge-reading #hud-log { visibility: hidden; }
+#knowledge-note-title, #knowledge-reader .knowledge-label { cursor: grab; }
+.knowledge-navigation { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-top: 12px; margin-top: 10px; border-top: 1px solid #b497ff33; flex-shrink: 0; }
+.knowledge-navigation button { cursor: pointer; color: #ddd2f5; background: #b497ff0d;
+  border: 1px solid #b497ff55; padding: 5px 9px; font: 11px var(--mono); }
+.knowledge-navigation button:disabled { opacity: .3; cursor: default; }
+#knowledge-page { color: #bba9d8; font-size: 11px; }
+.knowledge-reading-hint { color: #a19bad; font-size: 10px; text-align: center; padding-top: 8px; flex-shrink: 0; }
+.drag-handle { cursor: grab; touch-action: none; }
+#hud-left #gesture-panel { display: block; }
+.drag-handle span { float: right; opacity: .5; }
+.draggable-panel.dragging { z-index: 30 !important; box-shadow: 0 4px 26px #000a; }
+.draggable-panel.dragging .drag-handle { cursor: grabbing; }
+@media (max-height: 850px) {
+  #knowledge-status { top: 73px; padding: 6px 12px; }
+  #knowledge-reader { top: 95px; bottom: 190px; }
+}
+
+/* The new right-hand card uses the original HUD palette and panel chrome. */
+#hud-right { position: fixed; top: 90px; right: 30px; bottom: 240px; width: 240px; display: flex; flex-direction: column; gap: 14px; pointer-events: none; }
+#hud-right > * { pointer-events: auto; }
+#import-panel { height: 194px; min-height: 120px; flex: 0 0 auto; overflow: hidden; display: flex; flex-direction: column; }
+#import-panel > .panel-label { flex: 0 0 auto; }
+.import-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding-bottom: 12px; }
+#hud-right > #hud-log { position: relative; inset: auto; transform: none; width: 100%; max-height: none; flex: 1 1 auto; min-height: 80px; overflow: auto; }
+#hud-right #log-feed { max-height: none; overflow: visible; }
+.import-actions { display: flex; gap: 6px; }
+.import-actions .hud-btn { padding: 6px 8px; font-size: 11px; letter-spacing: 0; flex: 1; }
+#import-drop { border: 1px dashed var(--cyan-soft); padding: 8px; margin-top: 9px; color: var(--text); font-size: 11px; text-align: center; cursor: pointer; }
+#import-drop.dragover { background: var(--cyan-faint); border-color: var(--cyan); }
+#import-status { font-size: 10px; color: var(--cyan-soft); line-height: 1.7; margin: 7px 0; overflow-wrap: anywhere; white-space: pre-line; }
+#import-list { display: flex; flex-direction: column; gap: 5px; }
+.import-item { display: flex; align-items: center; gap: 5px; font-size: 11px; }
+.import-open { min-width: 0; flex: 1; text-align: left; border: 0; color: var(--text); background: transparent; font: inherit; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 0; }
+.import-remove { border: 0; background: transparent; color: var(--cyan-soft); font: 14px var(--mono); cursor: pointer; }
+.draggable-panel { position: relative; }
+.draggable-panel.user-sized { overflow: auto; flex: 0 0 auto !important; }
+.panel-height-grip { position: absolute; right: 2px; bottom: 1px; width: 19px; height: 17px; font: 14px/14px var(--mono); color: var(--cyan-soft); background: transparent; border: 0; cursor: ns-resize; touch-action: none; z-index: 2; }
+#knowledge-attachment { flex: 1 1 auto; min-height: 0; overflow: auto; }
+#knowledge-attachment img { display: block; width: 100%; height: 100%; object-fit: contain; }
+#knowledge-attachment iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+#knowledge-attachment a { display: inline-block; color: var(--cyan); font-size: 11px; margin: 8px 0; }
+.knowledge-reading #hud-right { visibility: hidden; }
+@media (max-height: 760px) { #hud-right { top: 82px; } #import-panel { height: 160px; } }
+
+#reply-panel { height: 150px; min-height: 90px; flex: 0 0 auto; overflow: hidden; display: flex; flex-direction: column; }
+#reply-panel > .panel-label { flex: 0 0 auto; }
+#reply-question { color: var(--cyan-soft); font-size: 10px; line-height: 1.6; max-height: 33px; overflow: auto; flex: 0 0 auto; margin-bottom: 5px; overflow-wrap: anywhere; }
+#reply-question:empty { display: none; }
+#reply-scroll { min-height: 0; flex: 1 1 auto; overflow: auto; color: var(--text); font-size: 12px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; padding-bottom: 9px; user-select: text; }
+.reply-caret { color: var(--cyan); margin-left: 2px; animation: blink 1s steps(1) infinite; }
