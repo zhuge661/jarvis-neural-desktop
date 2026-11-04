@@ -135,6 +135,14 @@ def build(args):
         software_graphics=os.environ.get('GITHUB_ACTIONS')=='true' and args.arch=='x64'
         if software_graphics:
             command+=['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']
+            # Electron omits the Vulkan loader needed by recent ANGLE software
+            # rendering. Borrow the already installed test browser's loader via
+            # the CI environment; it is never copied into the distributed app.
+            loader=next((Path.home()/'Library/Caches/ms-playwright').rglob('libvulkan.dylib'),None)
+            assert loader,'Playwright Chromium Vulkan loader is required for Intel CI'
+            env['DYLD_LIBRARY_PATH']=str(loader.parent)
+            env['DYLD_FALLBACK_LIBRARY_PATH']=str(loader.parent)
+            print('Intel CI software-renderer loader:',loader,flush=True)
         subprocess.run(command,env=env,check=True,timeout=120)
         data=json.loads(report.read_text());assert data.get('platform')=='darwin' and data.get('packaged') and not data.get('error'),data
         data['ciGraphics']='SwiftShader' if software_graphics else 'default'
