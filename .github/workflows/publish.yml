@@ -1,0 +1,48 @@
+name: Publish reviewed Mac release
+on:
+  workflow_dispatch:
+    inputs:
+      arm_run:
+        description: Successful Apple-chip build run ID
+        required: true
+        type: string
+      intel_run:
+        description: Successful Intel build run ID
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: macos-arm64
+          run-id: ${{ inputs.arm_run }}
+          path: incoming/arm64
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: macos-x64
+          run-id: ${{ inputs.intel_run }}
+          path: incoming/x64
+          github-token: ${{ github.token }}
+      - run: python -B scripts/check_public.py
+      - run: python -B scripts/verify_packages.py incoming release
+      - name: Publish clean installation packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create v1.0.0 release/*
+          --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA"
+          --title "v1.0.0 · 中文全息桌面 / Mac 纯净预览版"
+          --prerelease --notes-file docs/RELEASE_v1.0.0.md
