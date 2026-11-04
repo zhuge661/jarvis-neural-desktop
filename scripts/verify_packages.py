@@ -10,13 +10,13 @@ import stat
 import subprocess
 
 ROOT=Path(__file__).resolve().parents[1]
-def verify(incoming,out):
+def verify(incoming,out,arches=('arm64','x64')):
     import zipfile
     out.mkdir(parents=True,exist_ok=True)
     tracked=subprocess.check_output(['git','ls-files','-z','app'],cwd=ROOT).decode().split('\0')
     source={name[4:]:hashlib.sha256(subprocess.check_output(['git','show','HEAD:'+name],cwd=ROOT)).digest() for name in filter(None,tracked)}
     results=[]
-    for arch in ('arm64','x64'):
+    for arch in arches:
         archive=next((incoming/arch).rglob(f'Jarvis-macOS-{arch}-v1.0.0.zip'))
         smoke_path=next((incoming/arch).rglob(f'mac-smoke-{arch}.json'))
         smoke=json.loads(smoke_path.read_text())
@@ -59,4 +59,6 @@ def verify(incoming,out):
     (out/'release-audit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(report,ensure_ascii=False,indent=2))
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('incoming',type=Path);p.add_argument('output',type=Path);a=p.parse_args();verify(a.incoming,a.output)
+    p=argparse.ArgumentParser();p.add_argument('incoming',type=Path);p.add_argument('output',type=Path)
+    p.add_argument('--arches',nargs='+',choices=('arm64','x64'),default=['arm64','x64'])
+    a=p.parse_args();verify(a.incoming,a.output,a.arches)

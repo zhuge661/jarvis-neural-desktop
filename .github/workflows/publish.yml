@@ -7,8 +7,9 @@ on:
         required: true
         type: string
       intel_run:
-        description: Successful Intel build run ID
-        required: true
+        description: Successful Intel build run ID (omit for Apple-chip-only preview)
+        required: false
+        default: ''
         type: string
 permissions:
   contents: write
@@ -31,13 +32,14 @@ jobs:
           path: incoming/arm64
           github-token: ${{ github.token }}
       - uses: actions/download-artifact@v8.0.2
+        if: inputs.intel_run != ''
         with:
           name: macos-x64
           run-id: ${{ inputs.intel_run }}
           path: incoming/x64
           github-token: ${{ github.token }}
       - run: python -B scripts/check_public.py
-      - run: python -B scripts/verify_packages.py incoming release
+      - run: python -B scripts/verify_packages.py incoming release --arches arm64 ${{ inputs.intel_run != '' && 'x64' || '' }}
       - name: Publish clean installation packages
         env:
           GH_TOKEN: ${{ github.token }}
