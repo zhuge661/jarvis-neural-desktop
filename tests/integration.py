@@ -101,7 +101,7 @@ with tempfile.TemporaryDirectory() as temporary:
             reopened=p.chromium.launch_persistent_context(profile,headless=True)
             page=reopened.new_page();page.route('https://**',lambda route:route.abort())
             page.goto(base+'/?desktop=1',wait_until='networkidle')
-            page.wait_for_function('NeuralImports.snapshot().count===2 && Knowledge.snapshot().count===2')
+            page.wait_for_function('window.NeuralImports && window.Knowledge && NeuralImports.snapshot().count===2 && Knowledge.snapshot().count===2')
             reopened.close()
         report={'freshModelConfigured':False,'freshVoiceConfigured':False,'freshKnowledgeNodes':0,
             'freshImports':0,'freshMemories':0,'freshReminders':0,'localProtocolTests':5,

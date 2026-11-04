@@ -1,6 +1,13 @@
 name: Build and test macOS
 on:
   workflow_dispatch:
+    inputs:
+      arch:
+        description: Target CPU architecture
+        required: true
+        default: both
+        type: choice
+        options: [both, arm64, x64]
 permissions:
   contents: read
 jobs:
@@ -8,11 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - arch: arm64
-            runner: macos-15
-          - arch: x64
-            runner: macos-15-intel
+        include: ${{ fromJSON(inputs.arch == 'arm64' && '[{"arch":"arm64","runner":"macos-15"}]' || inputs.arch == 'x64' && '[{"arch":"x64","runner":"macos-15-intel"}]' || '[{"arch":"arm64","runner":"macos-15"},{"arch":"x64","runner":"macos-15-intel"}]') }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
