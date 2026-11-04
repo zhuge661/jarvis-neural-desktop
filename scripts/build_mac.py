@@ -99,6 +99,8 @@ def build(args):
     download()
     app=stage/'贾维斯.app'
     if not app.exists():extract_electron(CACHE/f'electron-v45.2.1-darwin-{args.arch}.zip',stage);(stage/'Electron.app').rename(app)
+    original_executable=app/'Contents/MacOS/Electron'
+    if original_executable.exists():original_executable.rename(app/'Contents/MacOS/Jarvis')
     resources=app/'Contents/Resources';payload=resources/'app'
     shutil.copytree(ROOT/'app',payload,dirs_exist_ok=True,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
     if not (payload/'python/bin/python3').exists():
@@ -110,7 +112,7 @@ def build(args):
         data=plistlib.loads(plist.read_bytes())
         if isinstance(data.get('CFBundleIdentifier'),str):data['CFBundleIdentifier']=data['CFBundleIdentifier'].replace('com.github.Electron','com.jarvis.desktop.clean')
         if plist==app/'Contents/Info.plist':data.update(CFBundleName='贾维斯',CFBundleDisplayName='贾维斯',CFBundleIdentifier='com.jarvis.desktop.clean',
-            CFBundleShortVersionString='1.0.0',CFBundleVersion='1.0.0',CFBundleIconFile='jarvis.icns',
+            CFBundleShortVersionString='1.0.0',CFBundleVersion='1.0.0',CFBundleIconFile='jarvis.icns',CFBundleExecutable='Jarvis',
             NSCameraUsageDescription='用于本机手势识别；摄像头画面不上传。',NSMicrophoneUsageDescription='用于语音对话；开启实时语音时发送至你配置的语音服务。')
         plist.write_bytes(plistlib.dumps(data))
     png=(ROOT/'app/icon.png').read_bytes();width,height=struct.unpack('>II',png[16:24]);assert width==height
@@ -126,7 +128,7 @@ def build(args):
         assert sys.platform=='darwin' and ('arm64' if platform.machine()=='arm64' else 'x64')==args.arch,'Smoke test requires matching Mac CPU'
         report=DIST/f'mac-smoke-{args.arch}.json'
         env=dict(os.environ,JARVIS_SMOKE_REPORT=str(report))
-        executable=app/'Contents/MacOS/Electron'
+        executable=app/'Contents/MacOS/Jarvis'
         subprocess.run([str(executable),'--smoke-test'],env=env,check=True,timeout=120)
         data=json.loads(report.read_text());assert data.get('platform')=='darwin' and data.get('packaged') and not data.get('error'),data
     destination=DIST/f'Jarvis-macOS-{args.arch}-v1.0.0.zip'
