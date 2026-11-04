@@ -26,7 +26,7 @@ while IFS= read -r -d '' binary; do
   if /usr/bin/file -b "$binary" | /usr/bin/grep -q 'Mach-O'; then
     /usr/bin/codesign --force --sign - "$binary"
   fi
-done < <(/usr/bin/find "$DESTINATION/Contents" -type f -print0)
+done < <(/usr/bin/find "$DESTINATION/Contents/Resources/app" -type f -print0)
 /usr/bin/codesign --force --deep --sign - --entitlements "$DESTINATION/Contents/Resources/app/entitlements.mac.plist" "$DESTINATION"
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$DESTINATION"
 printf '\n安装完成。没有导入任何发送者的 API、照片或文档。\n'
