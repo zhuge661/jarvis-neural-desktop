@@ -33,6 +33,13 @@ jobs:
       - run: python scripts/check_public.py
       - run: node tests/gestures.cjs && node tests/desktop_boot.cjs
       - run: python -B tests/integration.py
+      - name: Prepare Intel CI graphics loader
+        if: matrix.arch == 'x64'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: |
+          brew install vulkan-loader
+          echo "JARVIS_CI_VULKAN_LOADER=$(brew --prefix vulkan-loader)/lib" >> "$GITHUB_ENV"
       - run: python -B scripts/build_mac.py --arch ${{ matrix.arch }} --sign --smoke
       - uses: actions/upload-artifact@v7.0.2
         if: always()
