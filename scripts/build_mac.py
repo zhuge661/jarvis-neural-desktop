@@ -129,8 +129,16 @@ def build(args):
         report=DIST/f'mac-smoke-{args.arch}.json'
         env=dict(os.environ,JARVIS_SMOKE_REPORT=str(report))
         executable=app/'Contents/MacOS/Jarvis'
-        subprocess.run([str(executable),'--smoke-test'],env=env,check=True,timeout=120)
+        command=[str(executable),'--smoke-test']
+        # Hosted Intel Macs expose no usable GPU. Use Chromium's software renderer
+        # only for this local CI check; normal app launches retain their defaults.
+        software_graphics=os.environ.get('GITHUB_ACTIONS')=='true' and args.arch=='x64'
+        if software_graphics:
+            command+=['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']
+        subprocess.run(command,env=env,check=True,timeout=120)
         data=json.loads(report.read_text());assert data.get('platform')=='darwin' and data.get('packaged') and not data.get('error'),data
+        data['ciGraphics']='SwiftShader' if software_graphics else 'default'
+        report.write_text(json.dumps(data,indent=2),encoding='utf-8')
     destination=DIST/f'Jarvis-macOS-{args.arch}-v1.0.0.zip'
     archive_app(app,destination)
     digest=hashlib.file_digest(destination.open('rb'),'sha256').hexdigest()
