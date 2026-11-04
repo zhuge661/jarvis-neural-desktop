@@ -121,6 +121,19 @@ def build(args):
     with zipfile.ZipFile(CACHE/f'electron-v45.2.1-darwin-{args.arch}.zip') as z:
         for name in ('LICENSE','LICENSES.chromium.html'):
             if name in z.namelist():(resources/('Electron-'+name)).write_bytes(z.read(name))
+    ci_loader=None
+    software_graphics=args.smoke and os.environ.get('GITHUB_ACTIONS')=='true' and args.arch=='x64'
+    if software_graphics:
+        # ANGLE opens the loader next to its framework, so DYLD search paths alone
+        # do not help. Temporarily stage the CI-only loader, then remove it and
+        # sign the final distributable again after the smoke check.
+        loader=Path(os.environ['JARVIS_CI_VULKAN_LOADER'])/'libvulkan.dylib'
+        assert loader.exists(),'Vulkan loader is required for Intel CI'
+        libraries=app/'Contents/Frameworks/Electron Framework.framework/Libraries'
+        ci_loader=libraries/'libvulkan.dylib'
+        assert not ci_loader.exists(),'Do not overwrite an existing runtime loader'
+        shutil.copy2(loader.resolve(),ci_loader)
+        print('Intel CI software-renderer loader:',ci_loader,flush=True)
     if args.sign:
         assert sys.platform=='darwin','Native signing requires macOS'
         subprocess.run(['/bin/bash',str(ROOT/'scripts/sign_mac.sh'),str(app)],check=True)
@@ -132,22 +145,16 @@ def build(args):
         command=[str(executable),'--smoke-test']
         # Hosted Intel Macs expose no usable GPU. Use Chromium's software renderer
         # only for this local CI check; normal app launches retain their defaults.
-        software_graphics=os.environ.get('GITHUB_ACTIONS')=='true' and args.arch=='x64'
         if software_graphics:
             command+=['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']
-            # Electron omits the Vulkan loader needed by recent ANGLE software
-            # rendering. Use the CI-installed loader via the test environment;
-            # it is never copied into the distributed app.
-            loader=Path(os.environ['JARVIS_CI_VULKAN_LOADER'])/'libvulkan.dylib'
-            assert loader.exists(),'Vulkan loader is required for Intel CI'
-            env['DYLD_LIBRARY_PATH']=str(loader.parent)
-            env['DYLD_FALLBACK_LIBRARY_PATH']=str(loader.parent)
             env['VK_LOADER_DEBUG']='error,warn'
-            print('Intel CI software-renderer loader:',loader,flush=True)
         subprocess.run(command,env=env,check=True,timeout=120)
         data=json.loads(report.read_text());assert data.get('platform')=='darwin' and data.get('packaged') and not data.get('error'),data
         data['ciGraphics']='SwiftShader' if software_graphics else 'default'
         report.write_text(json.dumps(data,indent=2),encoding='utf-8')
+    if ci_loader:
+        ci_loader.unlink()
+        subprocess.run(['/bin/bash',str(ROOT/'scripts/sign_mac.sh'),str(app)],check=True)
     destination=DIST/f'Jarvis-macOS-{args.arch}-v1.0.0.zip'
     archive_app(app,destination)
     digest=hashlib.file_digest(destination.open('rb'),'sha256').hexdigest()
