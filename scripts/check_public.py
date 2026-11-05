@@ -2,6 +2,7 @@
 from pathlib import Path
 import re
 import subprocess
+from check_bgm import check_bgm
 
 ROOT=Path(__file__).resolve().parents[1]
 forbidden={'private-settings.json','model-connections.json','realtime-voice.json','knowledge-vault.json','profile.json','memory.json','reminders.json'}
@@ -16,3 +17,4 @@ for name in filter(None,files):
     if re.search(rb'[A-Za-z]:[\\/]+Users[\\/]+[A-Za-z0-9_.-]+',data):issues.append(name)
 assert not issues,'Public tree contains disallowed content: '+', '.join(issues)
 print('Tracked public source: no private state paths or obvious secret patterns.')
+check_bgm()

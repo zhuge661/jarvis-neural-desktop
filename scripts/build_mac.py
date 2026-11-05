@@ -93,6 +93,8 @@ def archive_app(app,destination):
             z.writestr(info,source.read_bytes())
 
 def build(args):
+    from check_bgm import check_bgm
+    check_bgm()
     DIST.mkdir(exist_ok=True);stage=ROOT/'build'/args.arch;stage.mkdir(parents=True,exist_ok=True)
     target,wheels=runtimes(args.arch)
     from download_model import download
@@ -103,6 +105,7 @@ def build(args):
     if original_executable.exists():original_executable.rename(app/'Contents/MacOS/Jarvis')
     resources=app/'Contents/Resources';payload=resources/'app'
     shutil.copytree(ROOT/'app',payload,dirs_exist_ok=True,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
+    check_bgm(payload/'backend/JARVIS-main/ui/audio/bgm/supercluster-first-48s.wav')
     if not (payload/'python/bin/python3').exists():
         with tarfile.open(CACHE/f'cpython-3.13.18+20261026-{target}-apple-darwin-install_only_stripped.tar.gz') as tar:tar.extractall(payload,filter='data')
     deps=wheels_install(wheels,payload/'python')

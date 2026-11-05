@@ -177,6 +177,8 @@ LICENSES/                       上游许可证
 
 本项目基于 [rayeedaabir/JARVIS](https://github.com/rayeedaabir/JARVIS) 的桌面全息界面和本机服务结构，结合 [AaricaMatrix/quantum-neural-ar](https://github.com/AaricaMatrix/quantum-neural-ar) 的手势神经视觉思路及部分交互/音效实现，增加中文界面、聚类神经核心、模型协议适配、实时语音、资料光点和 Mac 封装。
 
-项目代码采用 [MIT License](LICENSE)，保留上游版权声明。Three.js、Tone.js、MediaPipe、SheetJS、Vosk、Electron、Python 等依赖适用各自许可证，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 和 [LICENSES](LICENSES)。内置背景音乐为通用程序合成环境音；不含作者的私人选曲或音频录制。
+项目代码采用 [MIT License](LICENSE)，保留上游版权声明。Three.js、Tone.js、MediaPipe、SheetJS、Vosk、Electron、Python 等依赖适用各自许可证，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 和 [LICENSES](LICENSES)。内置背景音乐恢复为原选曲《Supercluster》的前 48 秒，48kHz 双声道 PCM16，与 Windows 原文件一致；[来源说明](app/backend/JARVIS-main/ui/audio/bgm/来源说明.md)记录了音源和处理方式，音乐不适用本项目的 MIT 许可。
+
+源码已修复 Mac 版误用 24 秒单声道低频合成音的问题。此前发布的 v1.0.0 安装包仍包含旧音频；从当前源码重新构建后才会使用恢复的音乐。
 
 这是社区项目，与影视版权方及各模型、语音服务商没有官方隶属关系。
